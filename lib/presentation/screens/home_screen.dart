@@ -1,18 +1,49 @@
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
-  HomeScreen({Key key, this.title, this.color}) : super(key: key);
 
-  final String title;
-  final Color color;
+
+
+
+class ShellScreen extends StatefulWidget {
+  const ShellScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ShellScreen> createState() => _ShellScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _ShellScreenState extends State<ShellScreen> {
+  int index = 0;
+
+  final pages = const [
+   
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: Row(
+        children: [
+          NavigationRail(
+            selectedIndex: index,
+            onDestinationSelected: (i) => setState(() => index = i),
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.timer),
+                label: Text('Timer'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.checklist),
+                label: Text('Tasks'),
+              ),
+            ],
+          ),
+          const VerticalDivider(width: 1),
+         
+        ],
+      ),
+    );
   }
 }
+
+
