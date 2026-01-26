@@ -1,3 +1,4 @@
+import 'package:autumn/presentation/screens/focus_timer_screen.dart';
 import 'package:flutter/material.dart';
 
 
@@ -15,7 +16,8 @@ class _ShellScreenState extends State<ShellScreen> {
   int index = 0;
 
   final pages = const [
-   
+    FocusTimerScreen()
+    
   ];
 
   @override
@@ -39,7 +41,7 @@ class _ShellScreenState extends State<ShellScreen> {
             ],
           ),
           const VerticalDivider(width: 1),
-         
+          Expanded(child: pages[index]),
         ],
       ),
     );
