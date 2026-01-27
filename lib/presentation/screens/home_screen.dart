@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 
-class FocusDashboardScreen extends StatelessWidget {
+class FocusDashboardScreen extends StatefulWidget {
   const FocusDashboardScreen({super.key});
 
   @override
+  State<FocusDashboardScreen> createState() => _FocusDashboardScreenState();
+}
+
+class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
+  @override
   Widget build(BuildContext context) {
     final gap = 16.0;
+    int _selectedIndex = 0;
+
 
     return Scaffold(
       body: SafeArea(
@@ -14,60 +21,94 @@ class FocusDashboardScreen extends StatelessWidget {
           child: Row(
             children: [
               // Left: Timer (big)
+             
               Expanded(
                 flex: 2,
                 child: _CardView(
                   title: 'Timer',
-                  child: Center(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: const [
-                        StaticCircle(size: 280, strokeWidth: 4),
-                        Text(
-                          '25:00',
-                          style: TextStyle(fontSize: 56, fontWeight: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                  ),
+                
+                  child: Column(children: [
+                    
+                        
+LayoutBuilder(
+  builder: (context, constraints) {
+    final w = constraints.maxWidth / 2 - 40;
+
+    return ToggleButtons(
+        borderRadius: BorderRadius.circular(15),
+      isSelected: [_selectedIndex == 0, _selectedIndex == 1],
+      onPressed: (i) => setState(() => _selectedIndex = i),
+       borderColor: Colors.transparent,
+  selectedBorderColor: Colors.transparent,
+  disabledBorderColor: Colors.transparent,
+
+  constraints: const BoxConstraints(minHeight: 48),
+      children: [
+        SizedBox(width: w, height: 48, child: const _ToggleItem(icon: Icons.timer, label: 'Ongoing')),
+        SizedBox(width: w, height: 48, child: const _ToggleItem(icon: Icons.coffee, label: 'Break')),
+      ],
+    );
+  },
+)
+
+      
+                  
+                    //  Center(
+                      
+                    //   child: Stack(
+                    //     alignment: Alignment.center,
+                    //     children: const [
+                         
+                         
+                    //       StaticCircle(size: 280, strokeWidth: 4),
+                    //       Text(
+                    //         '25:00',
+                    //         style: TextStyle(fontSize: 56, fontWeight: FontWeight.w700),
+                    //       ),
+                    //     ],
+                    //   ),
+                    //                     ),
+                    
+
+                  ],)
                 ),
               ),
 
               SizedBox(width: gap),
 
               // Right: Tasks + Stats stacked
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: _CardView(
-                        title: 'Tasks',
-                        child: ListView(
-                          children: const [
-                            ListTile(title: Text('Write Flutter UI')),
-                            ListTile(title: Text('Add timer logic')),
-                            ListTile(title: Text('Create tasks page')),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: gap),
-                    Expanded(
-                      flex: 1,
-                      child: _CardView(
-                        title: 'Stats',
-                        child: const Center(
-                          child: Text('0 sessions\n0 min',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Expanded(
+              //   flex: 1,
+              //   child: Column(
+              //     children: [
+              //       Expanded(
+              //         flex: 2,
+              //         child: _CardView(
+              //           title: 'Tasks',
+              //           child: ListView(
+              //             children: const [
+              //               ListTile(title: Text('Write Flutter UI')),
+              //               ListTile(title: Text('Add timer logic')),
+              //               ListTile(title: Text('Create tasks page')),
+              //             ],
+              //           ),
+              //         ),
+              //       ),
+              //       SizedBox(height: gap),
+              //       Expanded(
+              //         flex: 1,
+              //         child: _CardView(
+              //           title: 'Stats',
+              //           child: const Center(
+              //             child: Text('0 sessions\n0 min',
+              //                 textAlign: TextAlign.center,
+              //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+              //           ),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -94,11 +135,34 @@ class _CardView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        
         children: [
           Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 12),
-          Expanded(child: child),
+          
+          
+          child
+        ],
+      ),
+    );
+  }
+}
+
+class _ToggleItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ToggleItem({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48, // ✅ real height
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(width: 6),
+          Text(label),
         ],
       ),
     );
