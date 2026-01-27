@@ -1,3 +1,4 @@
+import 'package:autumn/presentation/screens/focus_timer_screen.dart';
 import 'package:autumn/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const ShellScreen()
+      home: const FocusDashboardScreen()
     );
   }
 }
