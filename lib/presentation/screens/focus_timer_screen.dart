@@ -26,6 +26,8 @@ class _FocusTimerScreenState extends State<FocusTimerScreen> {
       setState(() => remaining -= 1);
     });
     setState(() {});
+
+    
   }
 
   void stop() {
