@@ -6,22 +6,27 @@ import 'package:equatable/equatable.dart';
 class TimerState extends Equatable {
     final int totalSeconds;
     final int remainingSeconds;
-    final int isRunning;
+    final bool isRunning;
+     final TimerMode mode;
   TimerState({
     required this.totalSeconds,
     required this.remainingSeconds,
     required this.isRunning,
+     required this.mode
   });
 
   TimerState copyWith({
     int? totalSeconds,
     int? remainingSeconds,
-    int? isRunning,
+    bool? isRunning,
+      TimerMode? mode,
   }) {
     return TimerState(
       totalSeconds: totalSeconds ?? this.totalSeconds,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isRunning: isRunning ?? this.isRunning,
+        mode: mode ?? this.mode,
+      
     );
   }
 
@@ -50,4 +55,9 @@ class TimerState extends Equatable {
  
 
  
+}
+
+enum TimerMode {
+  focus,
+  break_,
 }

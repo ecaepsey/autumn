@@ -1,15 +1,40 @@
+import 'package:autumn/logic/cubit/timer_cubit.dart';
+import 'package:autumn/logic/cubit/timer_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class FocusDashboardScreen extends StatefulWidget {
+class FocusDashboardScreen extends StatelessWidget {
   const FocusDashboardScreen({super.key});
 
   @override
-  State<FocusDashboardScreen> createState() => _FocusDashboardScreenState();
+  Widget build(BuildContext context) {
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => TimerCubit(totalSeconds: 25 * 60)),
+        BlocProvider(create: (_) => ToggleCubit(initialIndex: 0)),
+      ],
+      child: const _FocusDashboardBody(),
+    );
+  }
 }
 
-class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
+class _FocusDashboardBody extends StatefulWidget {
+  const _FocusDashboardBody({super.key});
+
+  @override
+  State<_FocusDashboardBody> createState() => _FocusDashboardScreenState();
+}
+
+
+
+class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
+
+  TimerMode _modeFromIndex(int i) =>
+    i == 0 ? TimerMode.focus : TimerMode.break_;
   @override
   Widget build(BuildContext context) {
+      final cubit = context.read<TimerCubit>();
+
     final gap = 16.0;
     int _selectedIndex = 0;
    
@@ -17,8 +42,9 @@ class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
 
     return Scaffold(
       body: SafeArea(
-        
-        child: Container(
+        child: BlocBuilder<TimerCubit, TimerState>(
+          builder: (_, state) {
+       return Container(
          
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -29,7 +55,10 @@ class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
                 Expanded(
                   flex: 2,
                   child: Container(
-                  decoration: const BoxDecoration(
+                    
+                     padding: const EdgeInsets.all(16),
+                  decoration:  BoxDecoration(
+                   
     gradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
@@ -37,18 +66,57 @@ class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
         Color(0xFFBFD9F6), // верх — мягкий голубой
         Color(0xFFEAF2FD), // низ — почти белый
       ],
+      
     ),
+     borderRadius: BorderRadius.circular(10),
                   ),
-                    child: _CardView(
-                      title: '',
+                 
                     
-                      child: Column(children: [
-                        
-                            PillToggle(
-                                selectedIndex: _selectedIndex,
-                                onChanged: (i) => setState(() => _selectedIndex = i),
-                              )
+                      child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      
+                        children: [
+                                
+                                BlocBuilder<TimerCubit, TimerState>(
+  builder: (context, state) {
+    return PillToggle(
+      selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
+      onChanged: (i) {
+        context.read<TimerCubit>().changeMode(_modeFromIndex(i));
+      },
+    );
+  },
+),
                               
+                             
+                              Text(state.mmss, style: TextStyle(fontSize: 100, fontWeight: .bold),),
+
+                              Container(
+                                width: 250,
+                                padding: .all(10),
+                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+                                child: Row(children: [
+                                 Icon(Icons.time_to_leave, size: 18, color:  Colors.blue),
+                                                    const SizedBox(width: 6),
+                                                  Text('Time to focus', style: const TextStyle(color: Colors.black)),
+                                                      ]),
+                              ),
+                               
+
+                              FilledButton.icon(
+                            onPressed: state.isRunning ? cubit.stop : cubit.start,
+                            icon:  state.isRunning ? const Icon(Icons.stop) : const Icon(Icons.play_arrow),
+                            label:  state.isRunning  ? const Text('Stop'): const Text('Start'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF4CAF50),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          )
+
                               
                                     
                       
@@ -66,53 +134,51 @@ class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
                         //       ),
                         //     ],
                         //   ),
-                        //                     ),
+                                            // ),
                         
                               
                       ],)
                     ),
                   ),
-                ),
+               
           
-                SizedBox(width: gap),
+                // SizedBox(width: gap),
           
                 // Right: Tasks + Stats stacked
-                // Expanded(
-                //   flex: 1,
-                //   child: Column(
-                //     children: [
-                //       Expanded(
-                //         flex: 2,
-                //         child: _CardView(
-                //           title: 'Tasks',
-                //           child: ListView(
-                //             children: const [
-                //               ListTile(title: Text('Write Flutter UI')),
-                //               ListTile(title: Text('Add timer logic')),
-                //               ListTile(title: Text('Create tasks page')),
-                //             ],
-                //           ),
-                //         ),
-                //       ),
-                //       SizedBox(height: gap),
-                //       Expanded(
-                //         flex: 1,
-                //         child: _CardView(
-                //           title: 'Stats',
-                //           child: const Center(
-                //             child: Text('0 sessions\n0 min',
-                //                 textAlign: TextAlign.center,
-                //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-                //           ),
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: ListView(
+                            children: const [
+                              ListTile(title: Text('Write Flutter UI')),
+                              ListTile(title: Text('Add timer logic')),
+                              ListTile(title: Text('Create tasks page')),
+                            ],
+                          ),
+                      ),
+                      SizedBox(height: gap),
+                      Expanded(
+                        flex: 2,
+                        child: ListView(
+                            children: const [
+                              ListTile(title: Text('Write Flutter UI')),
+                              ListTile(title: Text('Add timer logic')),
+                              ListTile(title: Text('Create tasks page')),
+                            ],
+                          ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ),
+       );
+        
+          })
       ),
     );
   }
@@ -148,27 +214,7 @@ class _CardView extends StatelessWidget {
   }
 }
 
-class _ToggleItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
 
-  const _ToggleItem({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48, // ✅ real height
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 6),
-          Text(label),
-        ],
-      ),
-    );
-  }
-}
 
 /// Static circle (no progress)
 class StaticCircle extends StatelessWidget {
