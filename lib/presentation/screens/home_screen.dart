@@ -12,104 +12,105 @@ class _FocusDashboardScreenState extends State<FocusDashboardScreen> {
   Widget build(BuildContext context) {
     final gap = 16.0;
     int _selectedIndex = 0;
+   
 
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Left: Timer (big)
-             
-              Expanded(
-                flex: 2,
-                child: _CardView(
-                  title: 'Timer',
-                
-                  child: Column(children: [
-                    
-                        
-LayoutBuilder(
-  builder: (context, constraints) {
-    final w = constraints.maxWidth / 2 - 40;
-
-    return ToggleButtons(
-        borderRadius: BorderRadius.circular(15),
-      isSelected: [_selectedIndex == 0, _selectedIndex == 1],
-      onPressed: (i) => setState(() => _selectedIndex = i),
-       borderColor: Colors.transparent,
-  selectedBorderColor: Colors.transparent,
-  disabledBorderColor: Colors.transparent,
-
-  constraints: const BoxConstraints(minHeight: 48),
-      children: [
-        SizedBox(width: w, height: 48, child: const _ToggleItem(icon: Icons.timer, label: 'Ongoing')),
-        SizedBox(width: w, height: 48, child: const _ToggleItem(icon: Icons.coffee, label: 'Break')),
+        
+        child: Container(
+         
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Left: Timer (big)
+               
+                Expanded(
+                  flex: 2,
+                  child: Container(
+                  decoration: const BoxDecoration(
+    gradient: LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Color(0xFFBFD9F6), // верх — мягкий голубой
+        Color(0xFFEAF2FD), // низ — почти белый
       ],
-    );
-  },
-)
-
-      
-                  
-                    //  Center(
-                      
-                    //   child: Stack(
-                    //     alignment: Alignment.center,
-                    //     children: const [
-                         
-                         
-                    //       StaticCircle(size: 280, strokeWidth: 4),
-                    //       Text(
-                    //         '25:00',
-                    //         style: TextStyle(fontSize: 56, fontWeight: FontWeight.w700),
-                    //       ),
-                    //     ],
-                    //   ),
-                    //                     ),
+    ),
+                  ),
+                    child: _CardView(
+                      title: '',
                     
-
-                  ],)
+                      child: Column(children: [
+                        
+                            PillToggle(
+                                selectedIndex: _selectedIndex,
+                                onChanged: (i) => setState(() => _selectedIndex = i),
+                              )
+                              
+                              
+                                    
+                      
+                        //  Center(
+                          
+                        //   child: Stack(
+                        //     alignment: Alignment.center,
+                        //     children: const [
+                             
+                             
+                        //       StaticCircle(size: 280, strokeWidth: 4),
+                        //       Text(
+                        //         '25:00',
+                        //         style: TextStyle(fontSize: 56, fontWeight: FontWeight.w700),
+                        //       ),
+                        //     ],
+                        //   ),
+                        //                     ),
+                        
+                              
+                      ],)
+                    ),
+                  ),
                 ),
-              ),
-
-              SizedBox(width: gap),
-
-              // Right: Tasks + Stats stacked
-              // Expanded(
-              //   flex: 1,
-              //   child: Column(
-              //     children: [
-              //       Expanded(
-              //         flex: 2,
-              //         child: _CardView(
-              //           title: 'Tasks',
-              //           child: ListView(
-              //             children: const [
-              //               ListTile(title: Text('Write Flutter UI')),
-              //               ListTile(title: Text('Add timer logic')),
-              //               ListTile(title: Text('Create tasks page')),
-              //             ],
-              //           ),
-              //         ),
-              //       ),
-              //       SizedBox(height: gap),
-              //       Expanded(
-              //         flex: 1,
-              //         child: _CardView(
-              //           title: 'Stats',
-              //           child: const Center(
-              //             child: Text('0 sessions\n0 min',
-              //                 textAlign: TextAlign.center,
-              //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-              //           ),
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-            ],
+          
+                SizedBox(width: gap),
+          
+                // Right: Tasks + Stats stacked
+                // Expanded(
+                //   flex: 1,
+                //   child: Column(
+                //     children: [
+                //       Expanded(
+                //         flex: 2,
+                //         child: _CardView(
+                //           title: 'Tasks',
+                //           child: ListView(
+                //             children: const [
+                //               ListTile(title: Text('Write Flutter UI')),
+                //               ListTile(title: Text('Add timer logic')),
+                //               ListTile(title: Text('Create tasks page')),
+                //             ],
+                //           ),
+                //         ),
+                //       ),
+                //       SizedBox(height: gap),
+                //       Expanded(
+                //         flex: 1,
+                //         child: _CardView(
+                //           title: 'Stats',
+                //           child: const Center(
+                //             child: Text('0 sessions\n0 min',
+                //                 textAlign: TextAlign.center,
+                //                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                //           ),
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
       ),
@@ -218,4 +219,117 @@ class _CirclePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+
+class _Segment extends StatelessWidget {
+  final bool selected;
+  final BorderRadius radius;
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _Segment({
+    required this.selected,
+    required this.radius,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Container(
+      decoration: BoxDecoration(
+        
+        
+        
+      ),
+      child: Material(
+       color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+           hoverColor: Colors.transparent,      // 🟢 remove hover
+          splashColor: Colors.transparent,     // 🟢 remove ripple
+          highlightColor: Colors.transparent,  // 🟢 remove press highlight
+          child: Ink(
+            decoration: BoxDecoration(
+              color: selected ? Colors.white : Colors.grey.withOpacity(0.1),
+              borderRadius: radius,
+            ),
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 18, color: selected ? Colors.blue : Colors.grey.withOpacity(1)),
+                  const SizedBox(width: 6),
+                  Text(label, style: const TextStyle(color: Colors.black)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+class PillToggle extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onChanged;
+
+  const PillToggle({
+    super.key,
+    required this.selectedIndex,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        decoration: BoxDecoration(
+    
+   
+  ),
+      child: SizedBox(
+        height: 48,
+        width: double.infinity,
+        child: Row(
+          children: [
+            Expanded(
+              child: _Segment(
+                selected: selectedIndex == 0,
+                radius: const BorderRadius.only(
+                   topLeft:  Radius.circular(30),
+                           bottomLeft:  Radius.circular(30),
+                ),
+                icon: Icons.timer,
+                
+                label: 'Ongoing',
+                onTap: () => onChanged(0),
+              ),
+            ),
+            Expanded(
+              child: _Segment(
+                selected: selectedIndex == 1,
+                radius: const BorderRadius.only(
+                  topRight:  Radius.circular(30),
+                           bottomRight:  Radius.circular(30),
+                    
+                ),
+                icon: Icons.coffee,
+                label: 'Break',
+                onTap: () => onChanged(1),
+              ),
+            ),
+          ],
+        ),
+        
+      ),
+    );
+    
+  }
 }
