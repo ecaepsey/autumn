@@ -1,5 +1,7 @@
+import 'package:autumn/logic/cubit/task_cubit.dart';
 import 'package:autumn/logic/cubit/timer_cubit.dart';
 import 'package:autumn/logic/cubit/timer_state.dart';
+import 'package:autumn/presentation/screens/todo_list_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -11,7 +13,7 @@ class FocusDashboardScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => TimerCubit(totalSeconds: 25 * 60)),
-        BlocProvider(create: (_) => ToggleCubit(initialIndex: 0)),
+         BlocProvider(create: (_) => TasksCubit()),
       ],
       child: const _FocusDashboardBody(),
     );
@@ -25,207 +27,172 @@ class _FocusDashboardBody extends StatefulWidget {
   State<_FocusDashboardBody> createState() => _FocusDashboardScreenState();
 }
 
-
-
 class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
-
   TimerMode _modeFromIndex(int i) =>
-    i == 0 ? TimerMode.focus : TimerMode.break_;
+      i == 0 ? TimerMode.focus : TimerMode.break_;
+
+    Widget _tasksStack() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: const TodoListWidget(), // ✅ inside tasks section
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-      final cubit = context.read<TimerCubit>();
+    final cubit = context.read<TimerCubit>();
 
     final gap = 16.0;
     int _selectedIndex = 0;
-   
-
 
     return Scaffold(
       body: SafeArea(
         child: BlocBuilder<TimerCubit, TimerState>(
           builder: (_, state) {
-       return Container(
-         
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Left: Timer (big)
-               
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    
-                     padding: const EdgeInsets.all(16),
-                  decoration:  BoxDecoration(
-                   
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        Color(0xFFBFD9F6), // верх — мягкий голубой
-        Color(0xFFEAF2FD), // низ — почти белый
-      ],
-      
-    ),
-     borderRadius: BorderRadius.circular(10),
-                  ),
-                 
-                    
-                      child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      
-                        children: [
-                                
-                                BlocBuilder<TimerCubit, TimerState>(
-  builder: (context, state) {
-    return PillToggle(
-      selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
-      onChanged: (i) {
-        context.read<TimerCubit>().changeMode(_modeFromIndex(i));
-      },
-    );
-  },
-),
-                              
-                             
-                              Text(state.mmss, style: TextStyle(fontSize: 100, fontWeight: .bold),),
+            return Container(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Left: Timer (big)
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0xFFBFD9F6), // верх — мягкий голубой
+                              Color(0xFFEAF2FD), // низ — почти белый
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
 
-                              Container(
-                                width: 250,
-                                padding: .all(10),
-                                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                                child: Row(children: [
-                                 Icon(Icons.time_to_leave, size: 18, color:  Colors.blue),
-                                                    const SizedBox(width: 6),
-                                                  Text('Time to focus', style: const TextStyle(color: Colors.black)),
-                                                      ]),
-                              ),
-                               
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                              FilledButton.icon(
-                            onPressed: state.isRunning ? cubit.stop : cubit.start,
-                            icon:  state.isRunning ? const Icon(Icons.stop) : const Icon(Icons.play_arrow),
-                            label:  state.isRunning  ? const Text('Stop'): const Text('Start'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF4CAF50),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                          children: [
+                            BlocBuilder<TimerCubit, TimerState>(
+                              builder: (context, state) {
+                                return PillToggle(
+                                  selectedIndex: state.mode == TimerMode.focus
+                                      ? 0
+                                      : 1,
+                                  onChanged: (i) {
+                                    context.read<TimerCubit>().changeMode(
+                                      _modeFromIndex(i),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+
+                            Text(
+                              state.mmss,
+                              style: TextStyle(
+                                fontSize: 100,
+                                fontWeight: .bold,
                               ),
                             ),
-                          )
 
-                              
-                                    
-                      
-                        //  Center(
-                          
-                        //   child: Stack(
-                        //     alignment: Alignment.center,
-                        //     children: const [
-                             
-                             
-                        //       StaticCircle(size: 280, strokeWidth: 4),
-                        //       Text(
-                        //         '25:00',
-                        //         style: TextStyle(fontSize: 56, fontWeight: FontWeight.w700),
-                        //       ),
-                        //     ],
-                        //   ),
-                                            // ),
-                        
-                              
-                      ],)
+                            Container(
+                              width: 250,
+                              padding: .all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.time_to_leave,
+                                    size: 18,
+                                    color: Colors.blue,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Time to focus',
+                                    style: const TextStyle(color: Colors.black),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            FilledButton.icon(
+                              onPressed: state.isRunning
+                                  ? cubit.stop
+                                  : cubit.start,
+                              icon: state.isRunning
+                                  ? const Icon(Icons.stop)
+                                  : const Icon(Icons.play_arrow),
+                              label: state.isRunning
+                                  ? const Text('Stop')
+                                  : const Text('Start'),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF4CAF50),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-               
-          
-                // SizedBox(width: gap),
-          
-                // Right: Tasks + Stats stacked
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: ListView(
-                            children: const [
-                              ListTile(title: Text('Write Flutter UI')),
-                              ListTile(title: Text('Add timer logic')),
-                              ListTile(title: Text('Create tasks page')),
-                            ],
+
+                    // SizedBox(width: gap),
+
+                    // Right: Tasks + Stats stacked
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: _tasksStack()
                           ),
-                      ),
-                      SizedBox(height: gap),
-                      Expanded(
-                        flex: 2,
-                        child: ListView(
-                            children: const [
-                              ListTile(title: Text('Write Flutter UI')),
-                              ListTile(title: Text('Add timer logic')),
-                              ListTile(title: Text('Create tasks page')),
-                            ],
+                          SizedBox(height: gap),
+                          Expanded(
+                            flex: 2,
+                            child: ListView(
+                              children: const [
+                                ListTile(title: Text('Write Flutter UI')),
+                                ListTile(title: Text('Add timer logic')),
+                                ListTile(title: Text('Create tasks page')),
+                              ],
+                            ),
                           ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-       );
-        
-          })
-      ),
-    );
-  }
-}
-
-class _CardView extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _CardView({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border.all(
-          width: 1,
-          color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            );
+          },
         ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          
-          
-          child
-        ],
       ),
     );
   }
 }
 
-
-
-/// Static circle (no progress)
 class StaticCircle extends StatelessWidget {
   final double size;
   final double strokeWidth;
 
-  const StaticCircle({
-    super.key,
-    this.size = 280,
-    this.strokeWidth = 4,
-  });
+  const StaticCircle({super.key, this.size = 280, this.strokeWidth = 4});
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +234,6 @@ class _CirclePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-
 class _Segment extends StatelessWidget {
   final bool selected;
   final BorderRadius radius;
@@ -285,21 +251,16 @@ class _Segment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return Container(
-      decoration: BoxDecoration(
-        
-        
-        
-      ),
+      decoration: BoxDecoration(),
       child: Material(
-       color: Colors.transparent,
+        color: Colors.transparent,
         child: InkWell(
           borderRadius: radius,
           onTap: onTap,
-           hoverColor: Colors.transparent,      // 🟢 remove hover
-          splashColor: Colors.transparent,     // 🟢 remove ripple
-          highlightColor: Colors.transparent,  // 🟢 remove press highlight
+          hoverColor: Colors.transparent, // 🟢 remove hover
+          splashColor: Colors.transparent, // 🟢 remove ripple
+          highlightColor: Colors.transparent, // 🟢 remove press highlight
           child: Ink(
             decoration: BoxDecoration(
               color: selected ? Colors.white : Colors.grey.withOpacity(0.1),
@@ -309,7 +270,11 @@ class _Segment extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 18, color: selected ? Colors.blue : Colors.grey.withOpacity(1)),
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: selected ? Colors.blue : Colors.grey.withOpacity(1),
+                  ),
                   const SizedBox(width: 6),
                   Text(label, style: const TextStyle(color: Colors.black)),
                 ],
@@ -321,7 +286,6 @@ class _Segment extends StatelessWidget {
     );
   }
 }
-
 
 class PillToggle extends StatelessWidget {
   final int selectedIndex;
@@ -336,10 +300,7 @@ class PillToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(
-    
-   
-  ),
+      decoration: BoxDecoration(),
       child: SizedBox(
         height: 48,
         width: double.infinity,
@@ -349,11 +310,11 @@ class PillToggle extends StatelessWidget {
               child: _Segment(
                 selected: selectedIndex == 0,
                 radius: const BorderRadius.only(
-                   topLeft:  Radius.circular(30),
-                           bottomLeft:  Radius.circular(30),
+                  topLeft: Radius.circular(30),
+                  bottomLeft: Radius.circular(30),
                 ),
                 icon: Icons.timer,
-                
+
                 label: 'Ongoing',
                 onTap: () => onChanged(0),
               ),
@@ -362,9 +323,8 @@ class PillToggle extends StatelessWidget {
               child: _Segment(
                 selected: selectedIndex == 1,
                 radius: const BorderRadius.only(
-                  topRight:  Radius.circular(30),
-                           bottomRight:  Radius.circular(30),
-                    
+                  topRight: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
                 ),
                 icon: Icons.coffee,
                 label: 'Break',
@@ -373,9 +333,7 @@ class PillToggle extends StatelessWidget {
             ),
           ],
         ),
-        
       ),
     );
-    
   }
 }
