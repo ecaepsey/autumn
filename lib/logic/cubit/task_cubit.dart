@@ -10,6 +10,7 @@ class TasksCubit extends Cubit<List<TodoItem>> {
     final item = TodoItem(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       title: t,
+        createdAt: DateTime.now(),
     );
 
     emit([item, ...state]);
@@ -30,16 +31,19 @@ class TodoItem {
   final String id;
   final String title;
   final bool done;
+   final DateTime createdAt;
 
   const TodoItem({
     required this.id,
     required this.title,
     this.done = false,
+     required this.createdAt,
   });
 
   TodoItem copyWith({String? title, bool? done}) => TodoItem(
         id: id,
         title: title ?? this.title,
         done: done ?? this.done,
+         createdAt: DateTime.now(),
       );
 }

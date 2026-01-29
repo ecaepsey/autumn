@@ -13,7 +13,7 @@ class FocusDashboardScreen extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => TimerCubit(totalSeconds: 25 * 60)),
-         BlocProvider(create: (_) => TasksCubit()),
+        BlocProvider(create: (_) => TasksCubit()),
       ],
       child: const _FocusDashboardBody(),
     );
@@ -31,14 +31,102 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
   TimerMode _modeFromIndex(int i) =>
       i == 0 ? TimerMode.focus : TimerMode.break_;
 
-    Widget _tasksStack() {
+  Widget _tasksStack() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFBFD9F6), // верх — мягкий голубой
+            Color(0xFFEAF2FD), // низ — почти белый
+          ],
+        ),
+        borderRadius: BorderRadius.circular(10),
       ),
+
       child: const TodoListWidget(), // ✅ inside tasks section
+    );
+  }
+
+  Widget _timerStack(TimerState state, TimerCubit cubit) {
+    return Expanded(
+      flex: 2,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFBFD9F6), // верх — мягкий голубой
+              Color(0xFFEAF2FD), // низ — почти белый
+            ],
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+          children: [
+            BlocBuilder<TimerCubit, TimerState>(
+              builder: (context, state) {
+                return PillToggle(
+                  selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
+                  onChanged: (i) {
+                    context.read<TimerCubit>().changeMode(_modeFromIndex(i));
+                  },
+                );
+              },
+            ),
+
+            Text(
+              state.mmss,
+              style: TextStyle(fontSize: 100, fontWeight: .bold),
+            ),
+
+            Container(
+              width: 250,
+              padding: .all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.time_to_leave, size: 18, color: Colors.blue),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Time to focus',
+                    style: const TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+
+            FilledButton.icon(
+              onPressed: state.isRunning ? cubit.stop : cubit.start,
+              icon: state.isRunning
+                  ? const Icon(Icons.stop)
+                  : const Icon(Icons.play_arrow),
+              label: state.isRunning ? const Text('Stop') : const Text('Start'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF4CAF50),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -59,122 +147,32 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
                 child: Row(
                   children: [
                     // Left: Timer (big)
-                    Expanded(
-                      flex: 2,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFFBFD9F6), // верх — мягкий голубой
-                              Color(0xFFEAF2FD), // низ — почти белый
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                          children: [
-                            BlocBuilder<TimerCubit, TimerState>(
-                              builder: (context, state) {
-                                return PillToggle(
-                                  selectedIndex: state.mode == TimerMode.focus
-                                      ? 0
-                                      : 1,
-                                  onChanged: (i) {
-                                    context.read<TimerCubit>().changeMode(
-                                      _modeFromIndex(i),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-
-                            Text(
-                              state.mmss,
-                              style: TextStyle(
-                                fontSize: 100,
-                                fontWeight: .bold,
-                              ),
-                            ),
-
-                            Container(
-                              width: 250,
-                              padding: .all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.time_to_leave,
-                                    size: 18,
-                                    color: Colors.blue,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Time to focus',
-                                    style: const TextStyle(color: Colors.black),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            FilledButton.icon(
-                              onPressed: state.isRunning
-                                  ? cubit.stop
-                                  : cubit.start,
-                              icon: state.isRunning
-                                  ? const Icon(Icons.stop)
-                                  : const Icon(Icons.play_arrow),
-                              label: state.isRunning
-                                  ? const Text('Stop')
-                                  : const Text('Start'),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: const Color(0xFF4CAF50),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // SizedBox(width: gap),
+                   Expanded(
+                    flex: 2,
+                    child: _tasksStack()),
+                    SizedBox(width: gap),
 
                     // Right: Tasks + Stats stacked
                     Expanded(
                       flex: 1,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: _tasksStack()
-                          ),
-                          SizedBox(height: gap),
-                          Expanded(
-                            flex: 2,
-                            child: ListView(
-                              children: const [
-                                ListTile(title: Text('Write Flutter UI')),
-                                ListTile(title: Text('Add timer logic')),
-                                ListTile(title: Text('Create tasks page')),
-                              ],
+                      child: Container(
+                        child: Column(
+                          children: [
+                               _timerStack(state, cubit),
+                           
+                            SizedBox(height: gap, width: gap),
+                            Expanded(
+                              flex: 2,
+                              child: ListView(
+                                children: const [
+                                  ListTile(title: Text('Write Flutter UI')),
+                                  ListTile(title: Text('Add timer logic')),
+                                  ListTile(title: Text('Create tasks page')),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],

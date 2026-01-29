@@ -1,6 +1,13 @@
 import 'package:autumn/logic/cubit/task_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:intl/intl.dart';
+
+String formatTime(DateTime date) {
+  return DateFormat('h:mm a').format(date);
+}
+
 class TodoListWidget extends StatefulWidget {
   const TodoListWidget({super.key});
 
@@ -17,71 +24,85 @@ class _TodoListWidgetState extends State<TodoListWidget> {
     super.dispose();
   }
 
+  String _formatDate(DateTime d) {
+    final now = DateTime.now();
+
+    if (now.difference(d).inDays == 0) return 'Today';
+    if (now.difference(d).inDays == 1) return 'Yesterday';
+
+    return '${d.day}.${d.month}.${d.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<TasksCubit>();
 
     return Column(
+      crossAxisAlignment: .start,
       children: [
-        Row(
-          children: [
-           
-
-            const SizedBox(width: 8),
-          
-          ],
-        ),
+        Text("Task list", style: TextStyle(fontSize: 16, fontWeight: .normal)),
+        Row(children: [const SizedBox(width: 8)]),
         const SizedBox(height: 12),
         Expanded(
           child: BlocBuilder<TasksCubit, List<TodoItem>>(
             builder: (_, items) {
-              return ListView(
+              return  Expanded(child: ListView(
                 children: items
-                    .map((t) => ListTile(
-                          leading: _RadioToggle(
-                            selected: t.done,
-                            onTap: () => cubit.toggleDone(t.id),
-                          ),
-                          title: Text(t.title),
-                        ))
+                    .map(
+                      (t) => ListTile(
+                        leading: _RadioToggle(
+                          selected: t.done,
+                          onTap: () => cubit.toggleDone(t.id),
+                        ),
+                        title: Text(
+                          t.title,
+                          style: TextStyle(fontSize: 14, fontWeight: .w500),
+                        ),
+                        trailing: Text(
+                          formatTime(t.createdAt),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelSmall?.copyWith(color: Colors.grey),
+                        ),
+                      ),
+                    )
                     .toList(),
-              );
+              ));
             },
           ),
         ),
-        Center(child:   FilledButton(
-              onPressed: () {
-showDialog(
-  context: context,
-  barrierDismissible: true,
-  builder: (_) => Dialog(
-    child: SizedBox(
-      width: 420,
-      height: 600,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: 
-       
-             TextField(
-                controller: controller,
-                decoration: const InputDecoration(hintText: 'Add task'),
-                onSubmitted: (_) {
-                  cubit.add(controller.text);
-                  controller.clear();
-                },
-              ),
-            
-      ),
-    ),
-  ),
-);
+        Center(
+          child: FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.lightGreen),
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (_) => Dialog(
+                  child: SizedBox(
+                    width: 420,
+                    height: 600,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(hintText: 'Add task'),
+                        onSubmitted: (_) {
+                          cubit.add(controller.text);
+                          controller.clear();
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              );
 
-
-                // cubit.add(controller.text);
-                // controller.clear();
-              },
-              child: const Text('Add'),
-            ),)
+              // cubit.add(controller.text);
+              // controller.clear();
+            },
+            child: Icon(Icons.add, size: 22 * 0.6, color: Colors.white),
+          ),
+        ),
       ],
     );
   }
@@ -95,34 +116,24 @@ class _RadioToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final color = Colors.lightGreen;
 
     return InkWell(
-      borderRadius: BorderRadius.circular(999),
       onTap: onTap,
-      child: Container(
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: 22,
         height: 22,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            width: 2,
-            color: selected ? color : Theme.of(context).colorScheme.outline,
-          ),
+          color: selected ? color : Colors.transparent,
+          border: Border.all(width: 2, color: selected ? color : color),
         ),
-        child: AnimatedOpacity(
+        child: AnimatedScale(
           duration: const Duration(milliseconds: 120),
-          opacity: selected ? 1 : 0,
-          child: Center(
-            child: Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: color,
-              ),
-            ),
-          ),
+          scale: selected ? 1 : 0,
+          child: Icon(Icons.check, size: 22 * 0.6, color: Colors.white),
         ),
       ),
     );
