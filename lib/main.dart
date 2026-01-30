@@ -1,4 +1,4 @@
-import 'package:autumn/presentation/screens/focus_timer_screen.dart';
+
 import 'package:autumn/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
