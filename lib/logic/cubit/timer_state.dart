@@ -13,6 +13,7 @@ class TimerState extends Equatable {
     required this.remainingSeconds,
     required this.isRunning,
      required this.mode
+     
   });
 
   TimerState copyWith({
