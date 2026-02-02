@@ -46,28 +46,29 @@ class _TodoListWidgetState extends State<TodoListWidget> {
         Expanded(
           child: BlocBuilder<TasksCubit, List<TodoItem>>(
             builder: (_, items) {
-              return  Expanded(child: ListView(
-                children: items
-                    .map(
-                      (t) => ListTile(
-                        leading: _RadioToggle(
-                          selected: t.done,
-                          onTap: () => cubit.toggleDone(t.id),
+              return Expanded(
+                child: ListView(
+                  children: items
+                      .map(
+                        (t) => ListTile(
+                          leading: _RadioToggle(
+                            selected: t.done,
+                            onTap: () => cubit.toggleDone(t.id),
+                          ),
+                          title: Text(
+                            t.title,
+                            style: TextStyle(fontSize: 14, fontWeight: .w500),
+                          ),
+                          trailing: Text(
+                            formatTime(t.createdAt),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: Colors.grey),
+                          ),
                         ),
-                        title: Text(
-                          t.title,
-                          style: TextStyle(fontSize: 14, fontWeight: .w500),
-                        ),
-                        trailing: Text(
-                          formatTime(t.createdAt),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelSmall?.copyWith(color: Colors.grey),
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ));
+                      )
+                      .toList(),
+                ),
+              );
             },
           ),
         ),
@@ -82,16 +83,59 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                   child: SizedBox(
                     width: 420,
                     height: 600,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: TextField(
-                        controller: controller,
-                        decoration: const InputDecoration(hintText: 'Add task'),
-                        onSubmitted: (_) {
-                          cubit.add(controller.text);
-                          controller.clear();
-                        },
-                      ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: TextField(
+                            controller: controller,
+                            decoration: const InputDecoration(
+                              hintText: 'Add task',
+                            ),
+                          
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(15),
+                          child: Row(
+                             crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                             
+                            children: [
+                              FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                     textStyle: TextStyle(fontSize: 12)
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context, true);
+                                },
+                                child: Text(
+                                  'Отмена',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    backgroundColor: Colors.white12,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 20,),
+                              FilledButton(
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  textStyle: TextStyle(fontSize: 12)
+                                ),
+                                onPressed: () {
+                                    cubit.add(controller.text);
+                              controller.clear();
+                                },
+                                child: Text('Добавить задачу'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
