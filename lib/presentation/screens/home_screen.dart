@@ -1,18 +1,27 @@
+import 'package:autumn/logic/cubit/session_state.dart';
 import 'package:autumn/logic/cubit/task_cubit.dart';
 import 'package:autumn/logic/cubit/timer_cubit.dart';
 import 'package:autumn/logic/cubit/timer_state.dart';
+import 'package:autumn/presentation/screens/progress_circle.dart';
 import 'package:autumn/presentation/screens/todo_list_widget.dart';
+import 'package:autumn/sessions_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FocusDashboardScreen extends StatelessWidget {
-  const FocusDashboardScreen({super.key});
+   final SessionsRepository repo;
+  const FocusDashboardScreen({super.key, required this.repo});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiBlocProvider( 
       providers: [
-        BlocProvider(create: (_) => TimerCubit(totalSeconds: 25 * 60)),
+         BlocProvider(create: (_) => SessionsCubit(repo)..load()),
+       BlocProvider(
+          create: (ctx) => TimerCubit(
+            onFocusCompleted: ctx.read<SessionsCubit>().addSession,
+          ),
+        ),
         BlocProvider(create: (_) => TasksCubit()),
       ],
       child: const _FocusDashboardBody(),
@@ -21,7 +30,8 @@ class FocusDashboardScreen extends StatelessWidget {
 }
 
 class _FocusDashboardBody extends StatefulWidget {
-  const _FocusDashboardBody({super.key});
+ 
+  const _FocusDashboardBody({super.key,});
 
   @override
   State<_FocusDashboardBody> createState() => _FocusDashboardScreenState();
@@ -50,9 +60,84 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
     );
   }
 
+  bool _sameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+String _formatTime(DateTime dt) {
+  final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+  final m = dt.minute.toString().padLeft(2, '0');
+  final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+  return '$h:$m $ampm';
+}
+
+String _formatDateLine(DateTime dt) {
+  // simple readable line without intl
+  const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  final wd = weekdays[dt.weekday - 1];
+  final mo = months[dt.month - 1];
+  return '$wd ${dt.day} $mo ${dt.year}, ${_formatTime(dt)}';
+}
+
+  Widget _progressStack() {
+  const dailyGoalSessions = 4; // 🔥 change to 8 or use minutes goal if you want
+
+  return Expanded(
+    flex: 1,
+    child: BlocBuilder<TimerCubit, TimerState>(
+      builder: (context, timerState) {
+        final selectedTaskId = timerState.selectedTaskId;
+
+        return BlocBuilder<SessionsCubit, SessionsState>(
+          builder: (context, sessionsState) {
+            final now = DateTime.now();
+
+            // If no task selected
+            if (selectedTaskId == null) {
+              return _progressCard(
+                title: 'Daily Progress',
+                doneCountText: 'Select a task',
+                lastSessionText: '—',
+                progress: 0,
+                percentText: '0%',
+              );
+            }
+
+            // Filter sessions by selected task & today
+            final sessionsForTaskToday = sessionsState.sessions.where((s) {
+              return s.taskId == selectedTaskId && _sameDay(s.endedAt, now);
+            }).toList();
+
+            // last session for this task (all time)
+            final allSessionsForTask = sessionsState.sessions
+                .where((s) => s.taskId == selectedTaskId)
+                .toList();
+
+            allSessionsForTask.sort((a, b) => b.endedAt.compareTo(a.endedAt));
+            final last = allSessionsForTask.isNotEmpty ? allSessionsForTask.first : null;
+
+            final doneCount = sessionsForTaskToday.length; // sessions today
+            final progress = (doneCount / dailyGoalSessions).clamp(0.0, 1.0);
+            final percent = (progress * 100).round();
+
+            return _progressCard(
+              title: 'Daily Progress',
+              doneCountText: '$doneCount / $dailyGoalSessions sessions done',
+              lastSessionText: last == null ? 'No sessions yet' : _formatDateLine(last.endedAt),
+              progress: progress,
+              percentText: '$percent%',
+            );
+          },
+        );
+      },
+    ),
+  );
+}
+
   Widget _timerStack(TimerState state, TimerCubit cubit) {
     return Expanded(
-      flex: 2,
+      flex: 4,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -141,15 +226,14 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
       body: SafeArea(
         child: BlocBuilder<TimerCubit, TimerState>(
           builder: (_, state) {
+             final selectedTaskId = state.selectedTaskId;
             return Container(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
                     // Left: Timer (big)
-                   Expanded(
-                    flex: 2,
-                    child: _tasksStack()),
+                    Expanded(flex: 2, child: _tasksStack()),
                     SizedBox(width: gap),
 
                     // Right: Tasks + Stats stacked
@@ -158,19 +242,10 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
                       child: Container(
                         child: Column(
                           children: [
-                               _timerStack(state, cubit),
-                           
+                            _timerStack(state, cubit),
+
                             SizedBox(height: gap, width: gap),
-                            Expanded(
-                              flex: 2,
-                              child: ListView(
-                                children: const [
-                                  ListTile(title: Text('Write Flutter UI')),
-                                  ListTile(title: Text('Add timer logic')),
-                                  ListTile(title: Text('Create tasks page')),
-                                ],
-                              ),
-                            ),
+                            _progressStack(),
                           ],
                         ),
                       ),
@@ -334,4 +409,94 @@ class PillToggle extends StatelessWidget {
       ),
     );
   }
+}
+
+
+Widget _progressCard({
+  required String title,
+  required String doneCountText,
+  required String lastSessionText,
+  required double progress,
+  required String percentText,
+}) {
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          Color(0xFFBFD9F6),
+          Color(0xFFEAF2FD),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          // NOTE: Column has no "spacing" in stable Flutter.
+          // Use SizedBox for spacing (works everywhere).
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
+                  child: Text(
+                    // show first number if you want, otherwise keep it simple
+                    doneCountText.startsWith('Select') ? '!' : doneCountText.split(' ').first,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(doneCountText),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            Text(
+              lastSessionText,
+              style: const TextStyle(
+                color: Color.fromARGB(255, 132, 125, 125),
+                fontWeight: FontWeight.w300,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+
+        ProgressCircle(
+          progress: progress,
+          size: 80,
+          strokeWidth: 4,
+          center: Container(
+            width: 77,
+            height: 77,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              percentText,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

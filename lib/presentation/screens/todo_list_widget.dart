@@ -1,4 +1,5 @@
 import 'package:autumn/logic/cubit/task_cubit.dart';
+import 'package:autumn/logic/cubit/timer_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -36,7 +37,7 @@ class _TodoListWidgetState extends State<TodoListWidget> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<TasksCubit>();
-
+   
     return Column(
       crossAxisAlignment: .start,
       children: [
@@ -44,13 +45,30 @@ class _TodoListWidgetState extends State<TodoListWidget> {
         Row(children: [const SizedBox(width: 8)]),
         const SizedBox(height: 12),
         Expanded(
-          child: BlocBuilder<TasksCubit, List<TodoItem>>(
-            builder: (_, items) {
-              return Expanded(
-                child: ListView(
-                  children: items
-                      .map(
-                        (t) => ListTile(
+         
+          
+
+        child: BlocBuilder<TasksCubit, List<TodoItem>>(
+          builder: (context, items) {
+            final selectedTaskId = context.select<TimerCubit, String?>(
+    (c) => c.state.selectedTaskId,
+  );
+            return ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (_, i) {
+                final t = items[i];
+                final isSelected = selectedTaskId == t.id;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue.withOpacity(0.10) : null,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? Colors.blue.withOpacity(0.35) : Colors.transparent,
+                    ),
+                  ),
+                     child: ListTile(
                           leading: _RadioToggle(
                             selected: t.done,
                             onTap: () => cubit.toggleDone(t.id),
@@ -63,11 +81,14 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                             formatTime(t.createdAt),
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(color: Colors.grey),
+
                           ),
-                        ),
-                      )
-                      .toList(),
-                ),
+                           onTap: () => context.read<TimerCubit>().selectTask(t.id), // ✅
+                        )
+                      );
+                      
+              }
+                
               );
             },
           ),
@@ -82,7 +103,7 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                 builder: (_) => Dialog(
                   child: SizedBox(
                     width: 420,
-                    height: 600,
+                    height: 400,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
@@ -92,22 +113,30 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                           child: TextField(
                             controller: controller,
                             decoration: const InputDecoration(
-                              hintText: 'Add task',
+                              hintText: 'Напишите тут над чем вы работаете...',
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              labelStyle: TextStyle(fontSize: 14),
                             ),
-                          
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.all(15),
                           child: Row(
-                             crossAxisAlignment: CrossAxisAlignment.center,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                             
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
+
                             children: [
                               FilledButton(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.white,
-                                     textStyle: TextStyle(fontSize: 12)
+                                  textStyle: TextStyle(fontSize: 12),
                                 ),
                                 onPressed: () {
                                   Navigator.pop(context, true);
@@ -120,15 +149,15 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                                   ),
                                 ),
                               ),
-                              SizedBox(width: 20,),
+                              SizedBox(width: 20),
                               FilledButton(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.green,
-                                  textStyle: TextStyle(fontSize: 12)
+                                  textStyle: TextStyle(fontSize: 12),
                                 ),
                                 onPressed: () {
-                                    cubit.add(controller.text);
-                              controller.clear();
+                                  cubit.add(controller.text);
+                                  controller.clear();
                                 },
                                 child: Text('Добавить задачу'),
                               ),

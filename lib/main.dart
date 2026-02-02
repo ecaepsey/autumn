@@ -1,13 +1,22 @@
 
 import 'package:autumn/presentation/screens/home_screen.dart';
+import 'package:autumn/sessions_repository.dart';
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
+import 'package:hive_flutter/hive_flutter.dart';
+Future<void> main() async {
+   WidgetsFlutterBinding.ensureInitialized(); 
+  await Hive.initFlutter();
+  final box = await Hive.openBox('focus_box');
+  final repo = SessionsRepository(box);
+   runApp(MyApp(repo: repo));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SessionsRepository repo;
+   const MyApp({super.key, required this.repo});
+
+
+  
 
   // This widget is the root of your application.
   @override
@@ -32,7 +41,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const FocusDashboardScreen()
+      home:  FocusDashboardScreen( repo: repo)
     );
   }
 }

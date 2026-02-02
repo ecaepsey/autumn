@@ -1,36 +1,60 @@
-
 import 'dart:async';
+import 'package:autumn/logic/cubit/focus_session.dart';
 import 'package:autumn/logic/cubit/timer_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TimerCubit extends Cubit<TimerState> {
-  TimerCubit({int totalSeconds = 25 * 60 })
-    : super(TimerState(
-      totalSeconds: totalSeconds, 
-      remainingSeconds: totalSeconds, 
-      isRunning: false,
-      mode: TimerMode.focus
-  ));
+  TimerCubit({required this.onFocusCompleted})
+    : super(
+        TimerState(
+          mode: TimerMode.focus,
+          totalSeconds: 25 * 60,
+          remainingSeconds: 25 * 60,
+          isRunning: false,
+        ),
+      );
+
+  final Future<void> Function(FocusSession session) onFocusCompleted;
 
   Timer? _ticker;
+
+  void selectTask(String taskId) {
+    // ✅ always keep one selected, just overwrite
+    if (state.selectedTaskId == taskId) return; // tap same -> keep
+    emit(state.copyWith(selectedTaskId: taskId));
+  }
+
 
   void start() {
     if (state.isRunning) return;
 
     emit(state.copyWith(isRunning: true));
 
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) async {
       final next = state.remainingSeconds - 1;
 
       if (next <= 0) {
         _ticker?.cancel();
+
+        if (state.mode == TimerMode.focus) {
+          final taskId = state.selectedTaskId;
+          if (taskId != null) {
+            await onFocusCompleted(
+              FocusSession(
+                endedAt: DateTime.now(),
+                durationSeconds: state.totalSeconds,
+                taskId: taskId, 
+              ),
+            );
+          }
+        }
+
         emit(state.copyWith(remainingSeconds: 0, isRunning: false));
       } else {
         emit(state.copyWith(remainingSeconds: next));
       }
     });
   }
-
 
   void stop() {
     _ticker?.cancel();
@@ -39,16 +63,22 @@ class TimerCubit extends Cubit<TimerState> {
 
   void reset() {
     _ticker?.cancel();
-    emit(state.copyWith(
-      remainingSeconds: state.totalSeconds,
-     isRunning: false));
+    emit(
+      state.copyWith(remainingSeconds: state.totalSeconds, isRunning: false),
+    );
   }
 
   void setDurationMinutes(int minutes) {
     final secs = minutes * 60;
     _ticker?.cancel();
-    emit(TimerState(totalSeconds: secs, remainingSeconds: secs, isRunning: false, mode: TimerMode.focus));
-
+    emit(
+      TimerState(
+        totalSeconds: secs,
+        remainingSeconds: secs,
+        isRunning: false,
+        mode: TimerMode.focus,
+      ),
+    );
   }
 
   @override
@@ -75,9 +105,6 @@ class TimerCubit extends Cubit<TimerState> {
       ),
     );
   }
-
-
-  
 }
 
 class ToggleCubit extends Cubit<int> {

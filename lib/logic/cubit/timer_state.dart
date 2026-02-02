@@ -8,12 +8,14 @@ class TimerState extends Equatable {
     final int remainingSeconds;
     final bool isRunning;
      final TimerMode mode;
+       final String? selectedTaskId; 
   TimerState({
     required this.totalSeconds,
     required this.remainingSeconds,
     required this.isRunning,
-     required this.mode
-     
+     required this.mode,
+     this.selectedTaskId,
+
   });
 
   TimerState copyWith({
@@ -21,12 +23,14 @@ class TimerState extends Equatable {
     int? remainingSeconds,
     bool? isRunning,
       TimerMode? mode,
+      String? selectedTaskId,
   }) {
     return TimerState(
       totalSeconds: totalSeconds ?? this.totalSeconds,
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       isRunning: isRunning ?? this.isRunning,
         mode: mode ?? this.mode,
+         selectedTaskId: selectedTaskId ?? this.selectedTaskId,
       
     );
   }
