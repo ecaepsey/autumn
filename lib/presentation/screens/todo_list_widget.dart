@@ -83,7 +83,9 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                                 ?.copyWith(color: Colors.grey),
 
                           ),
-                           onTap: () => context.read<TimerCubit>().selectTask(t.id), // ✅
+                           onTap: () {
+                            
+                           }
                         )
                       );
                       
