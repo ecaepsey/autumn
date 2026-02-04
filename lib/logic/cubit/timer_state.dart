@@ -17,6 +17,7 @@ class TimerState extends Equatable {
      this.selectedTaskId,
 
   });
+  
 
   TimerState copyWith({
     int? totalSeconds,
