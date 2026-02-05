@@ -17,7 +17,7 @@ class TimerState extends Equatable {
      this.selectedTaskId,
 
   });
-  
+
 
   TimerState copyWith({
     int? totalSeconds,
@@ -37,6 +37,8 @@ class TimerState extends Equatable {
   }
 
   double get progress => totalSeconds == 0 ? 0 : remainingSeconds / totalSeconds;
+
+  
 
   String get mmss {
     final m = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
