@@ -18,10 +18,31 @@ class TimerCubit extends Cubit<TimerState> {
 
   Timer? _ticker;
 
-void selectTask(String taskId) {
-  emit(state.copyWith(selectedTaskId: taskId));
-}
+  void selectTask(String taskId) {
+    emit(state.copyWith(selectedTaskId: taskId));
+  }
 
+  Future<void> _saveSessionIfNeeded({required bool completed}) async {
+    // сохраняем только focus-сессии
+    if (state.mode != TimerMode.focus) return;
+
+    final taskId = state.selectedTaskId;
+    if (taskId == null) return;
+
+    final elapsed = state.totalSeconds - state.remainingSeconds;
+
+    // чтобы не сохранять случайные клики (например 1–2 секунды)
+    if (elapsed <= 0) return; // nothing worked
+
+    await onFocusCompleted(
+      FocusSession(
+        endedAt: DateTime.now(),
+        durationSeconds: elapsed,
+        taskId: taskId,
+        completed: completed,
+      ),
+    );
+  }
 
   void start() {
     if (state.isRunning) return;
@@ -34,18 +55,7 @@ void selectTask(String taskId) {
       if (next <= 0) {
         _ticker?.cancel();
 
-        if (state.mode == TimerMode.focus) {
-          final taskId = state.selectedTaskId;
-          if (taskId != null) {
-            await onFocusCompleted(
-              FocusSession(
-                endedAt: DateTime.now(),
-                durationSeconds: state.totalSeconds,
-                taskId: taskId, 
-              ),
-            );
-          }
-        }
+        await _saveSessionIfNeeded(completed: true);
 
         emit(state.copyWith(remainingSeconds: 0, isRunning: false));
       } else {
@@ -75,6 +85,27 @@ void selectTask(String taskId) {
         remainingSeconds: secs,
         isRunning: false,
         mode: TimerMode.focus,
+      ),
+    );
+  }
+
+  Future<void> next() async {
+    _ticker?.cancel();
+
+    // ✅ save partial focus session if any time passed
+    await _saveSessionIfNeeded(completed: false);
+
+    final nextMode = state.mode == TimerMode.focus
+        ? TimerMode.break_
+        : TimerMode.focus;
+    final seconds = nextMode == TimerMode.focus ? 25 * 60 : 5 * 60;
+
+    emit(
+      state.copyWith(
+        mode: nextMode,
+        totalSeconds: seconds,
+        remainingSeconds: seconds,
+        isRunning: false,
       ),
     );
   }

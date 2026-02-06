@@ -9,15 +9,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class FocusDashboardScreen extends StatelessWidget {
-   final SessionsRepository repo;
+  final SessionsRepository repo;
   const FocusDashboardScreen({super.key, required this.repo});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider( 
+    return MultiBlocProvider(
       providers: [
-         BlocProvider(create: (_) => SessionsCubit(repo)..load()),
-       BlocProvider(
+        BlocProvider(create: (_) => SessionsCubit(repo)..load()),
+        BlocProvider(
           create: (ctx) => TimerCubit(
             onFocusCompleted: ctx.read<SessionsCubit>().addSession,
           ),
@@ -30,8 +30,7 @@ class FocusDashboardScreen extends StatelessWidget {
 }
 
 class _FocusDashboardBody extends StatefulWidget {
- 
-  const _FocusDashboardBody({super.key,});
+  const _FocusDashboardBody({super.key});
 
   @override
   State<_FocusDashboardBody> createState() => _FocusDashboardScreenState();
@@ -61,79 +60,97 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
   }
 
   bool _sameDay(DateTime a, DateTime b) =>
-    a.year == b.year && a.month == b.month && a.day == b.day;
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
-String _formatTime(DateTime dt) {
-  final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-  final m = dt.minute.toString().padLeft(2, '0');
-  final ampm = dt.hour >= 12 ? 'PM' : 'AM';
-  return '$h:$m $ampm';
-}
+  String _formatTime(DateTime dt) {
+    final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$h:$m $ampm';
+  }
 
-String _formatDateLine(DateTime dt) {
-  // simple readable line without intl
-  const weekdays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  String _formatDateLine(DateTime dt) {
+    // simple readable line without intl
+    const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
 
-  final wd = weekdays[dt.weekday - 1];
-  final mo = months[dt.month - 1];
-  return '$wd ${dt.day} $mo ${dt.year}, ${_formatTime(dt)}';
-}
+    final wd = weekdays[dt.weekday - 1];
+    final mo = months[dt.month - 1];
+    return '$wd ${dt.day} $mo ${dt.year}, ${_formatTime(dt)}';
+  }
 
   Widget _progressStack() {
-  const dailyGoalSessions = 4; // 🔥 change to 8 or use minutes goal if you want
+    const dailyGoalSessions =
+        4; // 🔥 change to 8 or use minutes goal if you want
 
-  return Expanded(
-    flex: 1,
-    child: BlocBuilder<TimerCubit, TimerState>(
-      builder: (context, timerState) {
-        final selectedTaskId = timerState.selectedTaskId;
+    return Expanded(
+      flex: 1,
+      child: BlocBuilder<TimerCubit, TimerState>(
+        builder: (context, timerState) {
+          final selectedTaskId = timerState.selectedTaskId;
 
-        return BlocBuilder<SessionsCubit, SessionsState>(
-          builder: (context, sessionsState) {
-            final now = DateTime.now();
+          return BlocBuilder<SessionsCubit, SessionsState>(
+            builder: (context, sessionsState) {
+              final now = DateTime.now();
 
-            // If no task selected
-            if (selectedTaskId == null) {
+              // If no task selected
+              if (selectedTaskId == null) {
+                return _progressCard(
+                  title: 'Daily Progress',
+                  doneCountText: 'Select a task',
+                  lastSessionText: '—',
+                  progress: 0,
+                  percentText: '0%',
+                );
+              }
+
+              // Filter sessions by selected task & today
+              final sessionsForTaskToday = sessionsState.sessions.where((s) {
+                return s.taskId == selectedTaskId && _sameDay(s.endedAt, now);
+              }).toList();
+
+              // last session for this task (all time)
+              final allSessionsForTask = sessionsState.sessions
+                  .where((s) => s.taskId == selectedTaskId)
+                  .toList();
+
+              allSessionsForTask.sort((a, b) => b.endedAt.compareTo(a.endedAt));
+              final last = allSessionsForTask.isNotEmpty
+                  ? allSessionsForTask.first
+                  : null;
+
+              final doneCount = sessionsForTaskToday.length; // sessions today
+              final progress = (doneCount / dailyGoalSessions).clamp(0.0, 1.0);
+              final percent = (progress * 100).round();
+
               return _progressCard(
                 title: 'Daily Progress',
-                doneCountText: 'Select a task',
-                lastSessionText: '—',
-                progress: 0,
-                percentText: '0%',
+                doneCountText: '$doneCount / $dailyGoalSessions sessions done',
+                lastSessionText: last == null
+                    ? 'No sessions yet'
+                    : _formatDateLine(last.endedAt),
+                progress: progress,
+                percentText: '$percent%',
               );
-            }
-
-            // Filter sessions by selected task & today
-            final sessionsForTaskToday = sessionsState.sessions.where((s) {
-              return s.taskId == selectedTaskId && _sameDay(s.endedAt, now);
-            }).toList();
-
-            // last session for this task (all time)
-            final allSessionsForTask = sessionsState.sessions
-                .where((s) => s.taskId == selectedTaskId)
-                .toList();
-
-            allSessionsForTask.sort((a, b) => b.endedAt.compareTo(a.endedAt));
-            final last = allSessionsForTask.isNotEmpty ? allSessionsForTask.first : null;
-
-            final doneCount = sessionsForTaskToday.length; // sessions today
-            final progress = (doneCount / dailyGoalSessions).clamp(0.0, 1.0);
-            final percent = (progress * 100).round();
-
-            return _progressCard(
-              title: 'Daily Progress',
-              doneCountText: '$doneCount / $dailyGoalSessions sessions done',
-              lastSessionText: last == null ? 'No sessions yet' : _formatDateLine(last.endedAt),
-              progress: progress,
-              percentText: '$percent%',
-            );
-          },
-        );
-      },
-    ),
-  );
-}
+            },
+          );
+        },
+      ),
+    );
+  }
 
   Widget _timerStack() {
     return Expanded(
@@ -153,80 +170,110 @@ String _formatDateLine(DateTime dt) {
         ),
 
         child: BlocBuilder<TimerCubit, TimerState>(
-           builder: (context, timerState) {
-              return BlocBuilder<TasksCubit, List<TodoItem>>(
-                
-            builder: (context, tasks) {
-              final cubit = context.read<TimerCubit>();
+          builder: (context, timerState) {
+            return BlocBuilder<TasksCubit, List<TodoItem>>(
+              builder: (context, tasks) {
+                final cubit = context.read<TimerCubit>();
                 final selectedId = timerState.selectedTaskId;
-              final selectedTask = selectedId == null
-                  ? null
-                  : tasks.where((t) => t.id == selectedId).firstOrNull;
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            
-              children: [
-                BlocBuilder<TimerCubit, TimerState>(
-                  builder: (context, state) {
-                    
-                    return PillToggle(
-                      selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
-                      onChanged: (i) {
-                        context.read<TimerCubit>().changeMode(_modeFromIndex(i));
+                final selectedTask = selectedId == null
+                    ? null
+                    : tasks.where((t) => t.id == selectedId).firstOrNull;
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                  children: [
+                    BlocBuilder<TimerCubit, TimerState>(
+                      builder: (context, state) {
+                        return PillToggle(
+                          selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
+                          onChanged: (i) {
+                            context.read<TimerCubit>().changeMode(
+                              _modeFromIndex(i),
+                            );
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
-            
-                Text(
-                  timerState.mmss,
-                  style: TextStyle(fontSize: 100, fontWeight: .bold),
-                ),
-            
-                Container(
-                  width: 250,
-                  padding: .all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.task, size: 18, color: Colors.blue),
-                      const SizedBox(width: 6),
-                      Text(
-                         selectedTask == null
-                          ? 'Focus'
-                          : ' ${selectedTask.title}',
-                        style: const TextStyle(color: Colors.black),
+                    ),
+
+                    Text(
+                      timerState.mmss,
+                      style: TextStyle(fontSize: 100, fontWeight: .bold),
+                    ),
+
+                    Container(
+                      width: 250,
+                      padding: .all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
-                  ),
-                ),
-            
-                FilledButton.icon(
-                  onPressed: timerState.isRunning ? cubit.stop : cubit.start,
-                  icon: timerState.isRunning
-                      ? const Icon(Icons.stop)
-                      : const Icon(Icons.play_arrow),
-                  label: timerState.isRunning ? const Text('Stop') : const Text('Start'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
+                      child: Row(
+                        children: [
+                          Icon(Icons.task, size: 18, color: Colors.blue),
+                          const SizedBox(width: 6),
+                          Text(
+                            selectedTask == null
+                                ? 'Focus'
+                                : ' ${selectedTask.title}',
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        ],
+                      ),
                     ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+
+                    Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FilledButton.icon(
+                          onPressed: timerState.isRunning
+                              ? cubit.stop
+                              : cubit.start,
+                          icon: timerState.isRunning
+                              ? const Icon(Icons.stop)
+                              : const Icon(Icons.play_arrow),
+                          label: timerState.isRunning
+                              ? const Text('Stop')
+                              : const Text('Start'),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 10,),
+                        FilledButton.icon(
+                          onPressed: cubit.next,
+                          icon: const Icon(Icons.skip_next),
+
+                          label: 
+                               const Text(''),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ],
+                     
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             );
-          }
-        );
-           })
+          },
+        ),
       ),
     );
   }
@@ -242,7 +289,7 @@ String _formatDateLine(DateTime dt) {
       body: SafeArea(
         child: BlocBuilder<TimerCubit, TimerState>(
           builder: (_, state) {
-             final selectedTaskId = state.selectedTaskId;
+            final selectedTaskId = state.selectedTaskId;
             return Container(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -427,7 +474,6 @@ class PillToggle extends StatelessWidget {
   }
 }
 
-
 Widget _progressCard({
   required String title,
   required String doneCountText,
@@ -441,10 +487,7 @@ Widget _progressCard({
       gradient: const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          Color(0xFFBFD9F6),
-          Color(0xFFEAF2FD),
-        ],
+        colors: [Color(0xFFBFD9F6), Color(0xFFEAF2FD)],
       ),
       borderRadius: BorderRadius.circular(10),
     ),
@@ -457,7 +500,10 @@ Widget _progressCard({
           // Use SizedBox for spacing (works everywhere).
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+            ),
             const SizedBox(height: 16),
 
             Row(
@@ -472,8 +518,13 @@ Widget _progressCard({
                   ),
                   child: Text(
                     // show first number if you want, otherwise keep it simple
-                    doneCountText.startsWith('Select') ? '!' : doneCountText.split(' ').first,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                    doneCountText.startsWith('Select')
+                        ? '!'
+                        : doneCountText.split(' ').first,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -516,7 +567,6 @@ Widget _progressCard({
     ),
   );
 }
-
 
 extension FirstOrNullExt<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
