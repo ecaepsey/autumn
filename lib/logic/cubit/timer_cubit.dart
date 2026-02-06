@@ -18,11 +18,9 @@ class TimerCubit extends Cubit<TimerState> {
 
   Timer? _ticker;
 
-  void selectTask(String taskId) {
-    // ✅ always keep one selected, just overwrite
-    if (state.selectedTaskId == taskId) return; // tap same -> keep
-    emit(state.copyWith(selectedTaskId: taskId));
-  }
+void selectTask(String taskId) {
+  emit(state.copyWith(selectedTaskId: taskId));
+}
 
 
   void start() {

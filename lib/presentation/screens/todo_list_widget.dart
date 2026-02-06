@@ -1,5 +1,6 @@
 import 'package:autumn/logic/cubit/task_cubit.dart';
 import 'package:autumn/logic/cubit/timer_cubit.dart';
+import 'package:autumn/logic/cubit/timer_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -37,7 +38,7 @@ class _TodoListWidgetState extends State<TodoListWidget> {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<TasksCubit>();
-   
+
     return Column(
       crossAxisAlignment: .start,
       children: [
@@ -45,56 +46,85 @@ class _TodoListWidgetState extends State<TodoListWidget> {
         Row(children: [const SizedBox(width: 8)]),
         const SizedBox(height: 12),
         Expanded(
-         
-          
+          child: BlocBuilder<TimerCubit, TimerState>(
+            builder: (context, timerState) {
+              return BlocBuilder<TasksCubit, List<TodoItem>>(
+                builder: (context, items) {
+                  return ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (_, i) {
+                      final t = items[i];
+                      final isSelected = timerState.selectedTaskId == t.id;
 
-        child: BlocBuilder<TasksCubit, List<TodoItem>>(
-          builder: (context, items) {
-            final selectedTaskId = context.select<TimerCubit, String?>(
-    (c) => c.state.selectedTaskId,
-  );
-            return ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (_, i) {
-                final t = items[i];
-                final isSelected = selectedTaskId == t.id;
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.blue.withOpacity(0.10) : null,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color: isSelected ? Colors.blue.withOpacity(0.35) : Colors.transparent,
-                    ),
-                  ),
-                     child: ListTile(
-                          leading: _RadioToggle(
-                            selected: t.done,
-                            onTap: () => cubit.toggleDone(t.id),
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () {
+                          debugPrint('ROW TAP ${t.id}');
+                          context.read<TimerCubit>().selectTask(
+                            t.id,
+                          ); // ✅ active task
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
                           ),
-                          title: Text(
-                            t.title,
-                            style: TextStyle(fontSize: 14, fontWeight: .w500),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.blue.withOpacity(0.10)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.blue.withOpacity(0.35)
+                                  : Colors.transparent,
+                            ),
                           ),
-                          trailing: Text(
-                            formatTime(t.createdAt),
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(color: Colors.grey),
-
+                          child: Row(
+                            children: [
+                              // ✅ radio = complete ONLY (doesn't block row tap)
+                              InkWell(
+                                
+                                borderRadius: BorderRadius.circular(999),
+                                onTap: () {
+                                  debugPrint('RADIO TAP ${t.id}');
+                               
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: _RadioToggle(
+                                    selected: t.done,
+                                    onTap: () {
+                                         context.read<TasksCubit>().toggleDone(t.id);
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  t.title,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                   
+                                  ),
+                                ),
+                              ),
+                           
+                            ],
                           ),
-                           onTap: () {
-                            
-                           }
-                        )
+                        ),
                       );
-                      
-              }
-                
+                    },
+                  );
+                },
               );
             },
           ),
         ),
+
         Center(
           child: FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.lightGreen),

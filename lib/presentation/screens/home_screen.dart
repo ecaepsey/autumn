@@ -135,7 +135,7 @@ String _formatDateLine(DateTime dt) {
   );
 }
 
-  Widget _timerStack(TimerState state, TimerCubit cubit) {
+  Widget _timerStack() {
     return Expanded(
       flex: 4,
       child: Container(
@@ -152,65 +152,81 @@ String _formatDateLine(DateTime dt) {
           borderRadius: BorderRadius.circular(10),
         ),
 
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-          children: [
-            BlocBuilder<TimerCubit, TimerState>(
-              builder: (context, state) {
-                return PillToggle(
-                  selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
-                  onChanged: (i) {
-                    context.read<TimerCubit>().changeMode(_modeFromIndex(i));
+        child: BlocBuilder<TimerCubit, TimerState>(
+           builder: (context, timerState) {
+              return BlocBuilder<TasksCubit, List<TodoItem>>(
+                
+            builder: (context, tasks) {
+              final cubit = context.read<TimerCubit>();
+                final selectedId = timerState.selectedTaskId;
+              final selectedTask = selectedId == null
+                  ? null
+                  : tasks.where((t) => t.id == selectedId).firstOrNull;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            
+              children: [
+                BlocBuilder<TimerCubit, TimerState>(
+                  builder: (context, state) {
+                    
+                    return PillToggle(
+                      selectedIndex: state.mode == TimerMode.focus ? 0 : 1,
+                      onChanged: (i) {
+                        context.read<TimerCubit>().changeMode(_modeFromIndex(i));
+                      },
+                    );
                   },
-                );
-              },
-            ),
-
-            Text(
-              state.mmss,
-              style: TextStyle(fontSize: 100, fontWeight: .bold),
-            ),
-
-            Container(
-              width: 250,
-              padding: .all(10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.time_to_leave, size: 18, color: Colors.blue),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Time to focus',
-                    style: const TextStyle(color: Colors.black),
+                ),
+            
+                Text(
+                  timerState.mmss,
+                  style: TextStyle(fontSize: 100, fontWeight: .bold),
+                ),
+            
+                Container(
+                  width: 250,
+                  padding: .all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              ),
-            ),
-
-            FilledButton.icon(
-              onPressed: state.isRunning ? cubit.stop : cubit.start,
-              icon: state.isRunning
-                  ? const Icon(Icons.stop)
-                  : const Icon(Icons.play_arrow),
-              label: state.isRunning ? const Text('Stop') : const Text('Start'),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF4CAF50),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 12,
+                  child: Row(
+                    children: [
+                      Icon(Icons.task, size: 18, color: Colors.blue),
+                      const SizedBox(width: 6),
+                      Text(
+                         selectedTask == null
+                          ? 'Focus'
+                          : ' ${selectedTask.title}',
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+            
+                FilledButton.icon(
+                  onPressed: timerState.isRunning ? cubit.stop : cubit.start,
+                  icon: timerState.isRunning
+                      ? const Icon(Icons.stop)
+                      : const Icon(Icons.play_arrow),
+                  label: timerState.isRunning ? const Text('Stop') : const Text('Start'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
+              ],
+            );
+          }
+        );
+           })
       ),
     );
   }
@@ -242,7 +258,7 @@ String _formatDateLine(DateTime dt) {
                       child: Container(
                         child: Column(
                           children: [
-                            _timerStack(state, cubit),
+                            _timerStack(),
 
                             SizedBox(height: gap, width: gap),
                             _progressStack(),
@@ -499,4 +515,9 @@ Widget _progressCard({
       ],
     ),
   );
+}
+
+
+extension FirstOrNullExt<T> on Iterable<T> {
+  T? get firstOrNull => isEmpty ? null : first;
 }

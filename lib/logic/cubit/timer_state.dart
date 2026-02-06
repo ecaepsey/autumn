@@ -38,7 +38,7 @@ class TimerState extends Equatable {
 
   double get progress => totalSeconds == 0 ? 0 : remainingSeconds / totalSeconds;
 
-  
+
 
   String get mmss {
     final m = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
@@ -48,7 +48,15 @@ class TimerState extends Equatable {
   
   @override
   // TODO: implement props
-  List<Object?> get props => [totalSeconds, remainingSeconds, isRunning];
+  @override
+List<Object?> get props => [
+  totalSeconds,
+  remainingSeconds,
+  isRunning,
+  mode,
+  selectedTaskId, // ✅ КРИТИЧЕСКИ ВАЖНО
+];
+
 
 
 

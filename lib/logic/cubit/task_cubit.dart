@@ -16,12 +16,14 @@ class TasksCubit extends Cubit<List<TodoItem>> {
     emit([item, ...state]);
   }
 
-  void toggleDone(String id) {
-    emit([
-      for (final x in state)
-        if (x.id == id) x.copyWith(done: !x.done) else x
-    ]);
-  }
+void toggleDone(String id) {
+  final updated = state.map((t) {
+    if (t.id != id) return t;
+    return t.copyWith(done: !t.done);
+  }).toList(growable: false);
+
+  emit(updated);
+}
 
   void remove(String id) {
     emit(state.where((x) => x.id != id).toList(growable: false));
