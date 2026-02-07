@@ -249,6 +249,7 @@ class _FocusDashboardScreenState extends State<_FocusDashboardBody> {
                         SizedBox(width: 10,),
                         FilledButton.icon(
                           onPressed: cubit.next,
+                          
                           icon: const Icon(Icons.skip_next),
 
                           label: 
