@@ -522,7 +522,7 @@ Widget _progressCard({
                   ),
                   child: Text(
                     // show first number if you want, otherwise keep it simple
-                    doneCountText.startsWith('Select')
+                    doneCountText.startsWith('Select ')
                         ? '!'
                         : doneCountText.split(' ').first,
                     style: const TextStyle(
