@@ -30,7 +30,7 @@ class _TodoListWidgetState extends State<TodoListWidget> {
     final now = DateTime.now();
 
     if (now.difference(d).inDays == 0) return 'Today';
-    
+
     if (now.difference(d).inDays == 1) return 'Yesterday';
 
     return '${d.day}.${d.month}.${d.year}';
@@ -44,6 +44,7 @@ class _TodoListWidgetState extends State<TodoListWidget> {
       crossAxisAlignment: .start,
       children: [
         Text("Task list", style: TextStyle(fontSize: 16, fontWeight: .normal)),
+        
         Row(children: [const SizedBox(width: 8)]),
         const SizedBox(height: 12),
         Expanded(
