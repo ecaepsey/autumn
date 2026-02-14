@@ -44,8 +44,6 @@ class _TodoListWidgetState extends State<TodoListWidget> {
       crossAxisAlignment: .start,
       children: [
         Text("Task list", style: TextStyle(fontSize: 16, fontWeight: .normal)),
-
-
         
         Row(children: [const SizedBox(width: 8)]),
         const SizedBox(height: 12),
@@ -116,6 +114,9 @@ class _TodoListWidgetState extends State<TodoListWidget> {
                                   ),
                                 ),
                               ),
+                           
+
+
                            
                             ],
                           ),
